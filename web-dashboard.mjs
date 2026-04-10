@@ -153,34 +153,33 @@ async function runJob(body) {
         messages = [{ role: 'user', content: userMsg }];
       }
 
-      const stream = await client.messages.stream({
+      // .stream() is synchronous — do NOT await it
+      const stream = client.messages.stream({
         model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
         max_tokens: 8096,
         system: systemPrompt,
         messages,
-        signal: job.abortController.signal,
       });
 
+      // Wire up abort
+      job.abortController.signal.addEventListener('abort', () => stream.abort());
+
       for await (const event of stream) {
-        if (job.abortController.signal.aborted) break;
         if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
           broadcast({ type: 'out', text: event.delta.text });
         }
       }
 
-      // Get final message for usage info (optional)
-      const finalMsg = await stream.finalMessage().catch(() => null);
       job.done = true;
-      broadcast({ type: 'done', code: 0, usage: finalMsg?.usage });
+      broadcast({ type: 'done', code: 0 });
     } catch (err) {
-      if (err.name === 'AbortError' || job.abortController.signal.aborted) {
-        broadcast({ type: 'done', code: 1, aborted: true });
-      } else {
-        broadcast({ type: 'err', text: '\n[Error] ' + err.message + '\n' });
-        broadcast({ type: 'done', code: 1 });
-      }
       job.done = true;
       job.error = err.message;
+      const aborted = err.name === 'AbortError' || err.name === 'APIUserAbortError' || job.abortController.signal.aborted;
+      if (!aborted) {
+        broadcast({ type: 'err', text: '\n[Error] ' + err.message + '\n' });
+      }
+      broadcast({ type: 'done', code: aborted ? 0 : 1 });
     }
 
     job.clients.forEach(c => { try { c.end(); } catch {} });
