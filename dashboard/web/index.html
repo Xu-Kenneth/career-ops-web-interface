@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career-Ops Dashboard</title>
+<style>
+:root {
+  --bg:     #1e1e2e;
+  --bg2:    #181825;
+  --bg3:    #11111b;
+  --sur:    #313244;
+  --sur2:   #45475a;
+  --text:   #cdd6f4;
+  --sub:    #a6adc8;
+  --gray:   #6c7086;
+  --blue:   #89b4fa;
+  --green:  #a6e3a1;
+  --yellow: #f9e2af;
+  --red:    #f38ba8;
+  --orange: #fab387;
+  --purple: #cba6f7;
+  --teal:   #94e2d5;
+  --sw: 214px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; display:flex; height:100vh; overflow:hidden; }
+
+/* ── Sidebar ── */
+.sidebar { width:var(--sw); background:var(--bg2); border-right:1px solid var(--sur); display:flex; flex-direction:column; flex-shrink:0; }
+.sb-logo { padding:16px 14px 13px; border-bottom:1px solid var(--sur); }
+.sb-logo h1 { font-size:15px; font-weight:700; color:var(--blue); }
+.sb-logo p { font-size:11px; color:var(--sub); margin-top:2px; }
+.nav { flex:1; overflow-y:auto; padding:5px 0; }
+.nav-sec { padding:10px 13px 3px; font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:var(--gray); font-weight:600; }
+.nav-item { display:flex; align-items:center; gap:8px; padding:8px 13px; cursor:pointer; color:var(--sub); transition:all .12s; border-left:2px solid transparent; font-size:13px; user-select:none; }
+.nav-item:hover { background:var(--sur); color:var(--text); }
+.nav-item.active { background:var(--sur); color:var(--blue); border-left-color:var(--blue); }
+.nav-item .ni { font-size:15px; width:18px; text-align:center; flex-shrink:0; }
+.sb-footer { padding:9px 13px; border-top:1px solid var(--sur); font-size:11px; color:var(--gray); }
+
+/* ── Main ── */
+main { flex:1; overflow:hidden; display:flex; flex-direction:column; min-width:0; }
+.topbar { padding:12px 20px; border-bottom:1px solid var(--sur); display:flex; align-items:center; justify-content:space-between; background:var(--bg); flex-shrink:0; }
+.topbar h2 { font-size:15px; font-weight:600; }
+.content { flex:1; overflow-y:auto; padding:20px; }
+.view { display:none; }
+.view.active { display:block; }
+.view-fill { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.view-fill.active { display:flex; }
+
+/* ── Stats ── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(145px,1fr)); gap:9px; margin-bottom:18px; }
+.sc { background:var(--bg2); border:1px solid var(--sur); border-radius:9px; padding:13px; }
+.sc .lbl { font-size:10px; color:var(--sub); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+.sc .val { font-size:25px; font-weight:700; line-height:1; }
+.sc .sbl { font-size:11px; color:var(--sub); margin-top:3px; }
+.c-blue .val { color:var(--blue); } .c-green .val { color:var(--green); } .c-yellow .val { color:var(--yellow); }
+.c-orange .val { color:var(--orange); } .c-red .val { color:var(--red); } .c-purple .val { color:var(--purple); } .c-teal .val { color:var(--teal); }
+
+/* ── Section ── */
+.section { background:var(--bg2); border:1px solid var(--sur); border-radius:9px; margin-bottom:16px; overflow:hidden; }
+.sec-hd { padding:11px 15px; border-bottom:1px solid var(--sur); display:flex; align-items:center; justify-content:space-between; }
+.sec-hd h3 { font-size:13px; font-weight:600; }
+.sec-bd { padding:15px; }
+
+/* ── Buttons ── */
+.btn { padding:6px 13px; border-radius:7px; border:none; cursor:pointer; font-size:13px; font-weight:500; transition:all .12s; display:inline-flex; align-items:center; gap:5px; font-family:inherit; }
+.btn-primary { background:var(--blue); color:#1e1e2e; }
+.btn-primary:hover { filter:brightness(1.1); }
+.btn-ghost { background:transparent; color:var(--sub); border:1px solid var(--sur2); }
+.btn-ghost:hover { background:var(--sur); color:var(--text); }
+.btn-danger { background:rgba(243,139,168,.15); color:var(--red); border:1px solid rgba(243,139,168,.3); }
+.btn-danger:hover { background:rgba(243,139,168,.25); }
+.btn-sm { padding:3px 9px; font-size:12px; }
+
+/* ── Table ── */
+.tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { padding:7px 10px; text-align:left; color:var(--sub); font-weight:500; font-size:10px; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--sur); white-space:nowrap; }
+td { padding:8px 10px; border-bottom:1px solid var(--sur); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,.025); }
+.sb { font-weight:600; font-size:12px; padding:2px 7px; border-radius:20px; }
+.sb-h { color:#11111b; background:var(--green); } .sb-m { color:#11111b; background:var(--yellow); } .sb-l { color:#11111b; background:var(--red); } .sb-n { color:var(--gray); }
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap; }
+.badge-Evaluated   { background:rgba(137,180,250,.12); color:var(--blue);   border:1px solid rgba(137,180,250,.25); }
+.badge-Applied     { background:rgba(166,227,161,.12); color:var(--green);  border:1px solid rgba(166,227,161,.25); }
+.badge-Responded   { background:rgba(148,226,213,.12); color:var(--teal);   border:1px solid rgba(148,226,213,.25); }
+.badge-Interview   { background:rgba(249,226,175,.12); color:var(--yellow); border:1px solid rgba(249,226,175,.25); }
+.badge-Offer       { background:rgba(250,179,135,.12); color:var(--orange); border:1px solid rgba(250,179,135,.25); }
+.badge-Rejected    { background:rgba(243,139,168,.12); color:var(--red);    border:1px solid rgba(243,139,168,.25); }
+.badge-Discarded   { background:rgba(108,112,134,.12); color:var(--gray);   border:1px solid rgba(108,112,134,.25); }
+.badge-SKIP        { background:rgba(203,166,247,.12); color:var(--purple); border:1px solid rgba(203,166,247,.25); }
+
+/* ── Form ── */
+.fg { margin-bottom:11px; }
+.fg label { display:block; font-size:11px; color:var(--sub); margin-bottom:4px; }
+.fg input, .fg select, .fg textarea { width:100%; background:var(--bg3); border:1px solid var(--sur2); border-radius:7px; padding:7px 10px; color:var(--text); font-size:13px; font-family:inherit; outline:none; transition:border-color .12s; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color:var(--blue); }
+.fg textarea { resize:vertical; min-height:90px; }
+.fbar { display:flex; gap:8px; margin-bottom:13px; flex-wrap:wrap; }
+.fbar input, .fbar select { background:var(--bg3); border:1px solid var(--sur2); border-radius:7px; padding:6px 10px; color:var(--text); font-size:13px; outline:none; }
+.fbar input:focus, .fbar select:focus { border-color:var(--blue); }
+.fbar input { flex:1; min-width:160px; }
+
+/* ── Pipeline item ── */
+.pi { display:flex; align-items:center; gap:9px; padding:8px 11px; border:1px solid var(--sur); border-radius:7px; margin-bottom:5px; background:var(--bg3); }
+.pi a { font-size:12px; color:var(--blue); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+.pi a:hover { text-decoration:underline; }
+.pi .pc, .pi .pt { font-size:12px; color:var(--sub); white-space:nowrap; max-width:140px; overflow:hidden; text-overflow:ellipsis; }
+
+/* ── Report list ── */
+.ri { display:flex; align-items:center; gap:9px; padding:8px 11px; border:1px solid var(--sur); border-radius:7px; margin-bottom:4px; background:var(--bg3); cursor:pointer; transition:all .12s; }
+.ri:hover, .ri.selected { border-color:var(--blue); background:var(--sur); }
+.ri .rn { font-size:11px; color:var(--sub); font-weight:600; min-width:28px; }
+.ri .rs { flex:1; font-size:12px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ri .rd { font-size:11px; color:var(--gray); white-space:nowrap; }
+
+/* ── Markdown ── */
+.mdv { font-size:13px; line-height:1.7; }
+.mdv h1 { font-size:18px; color:var(--blue); margin:0 0 10px; padding-bottom:6px; border-bottom:1px solid var(--sur); }
+.mdv h2 { font-size:14px; color:var(--text); margin:16px 0 6px; }
+.mdv h3 { font-size:13px; color:var(--sub); margin:11px 0 5px; }
+.mdv p { margin:0 0 8px; }
+.mdv ul, .mdv ol { margin:0 0 8px 17px; }
+.mdv li { margin:2px 0; }
+.mdv code { background:var(--sur); padding:1px 5px; border-radius:4px; font-family:monospace; font-size:12px; color:var(--yellow); }
+.mdv pre { background:var(--sur); padding:10px; border-radius:7px; overflow-x:auto; margin:8px 0; }
+.mdv pre code { background:none; padding:0; color:var(--text); }
+.mdv strong { color:var(--text); font-weight:600; }
+.mdv a { color:var(--blue); }
+.mdv blockquote { border-left:3px solid var(--blue); padding:6px 11px; background:rgba(137,180,250,.07); margin:8px 0; border-radius:0 5px 5px 0; color:var(--sub); }
+.mdv hr { border:none; border-top:1px solid var(--sur); margin:12px 0; }
+.mdv table { width:100%; border-collapse:collapse; margin:8px 0; }
+.mdv th { padding:5px 8px; background:var(--sur); text-align:left; font-size:12px; }
+.mdv td { padding:5px 8px; border-bottom:1px solid var(--sur); }
+
+/* ── Donut ── */
+.donut-wrap { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+.legend { display:grid; grid-template-columns:1fr 1fr; gap:5px 16px; }
+.li { display:flex; align-items:center; gap:6px; font-size:12px; }
+.ld { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+/* ── Inline status select ── */
+.ss { background:var(--bg2); border:1px solid var(--sur2); border-radius:6px; padding:3px 6px; color:var(--text); font-size:12px; cursor:pointer; outline:none; font-family:inherit; }
+.ss:focus { border-color:var(--blue); }
+@keyframes flash { 0%,100%{opacity:1}50%{opacity:.3} }
+.flashed { animation:flash .4s ease; }
+
+/* ── Empty state ── */
+.empty { text-align:center; padding:32px; color:var(--gray); }
+
+/* ── Drop zone ── */
+.dz { border:2px dashed var(--sur2); border-radius:9px; padding:32px; text-align:center; cursor:pointer; transition:all .17s; color:var(--gray); }
+.dz:hover, .dz.over { border-color:var(--blue); color:var(--blue); background:rgba(137,180,250,.04); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   COMMANDS VIEW — two-panel
+──────────────────────────────────────────────────────────────────────────────*/
+.cmd-layout { display:grid; grid-template-columns:300px 1fr; gap:16px; height:calc(100vh - 110px); }
+.cmd-list { overflow-y:auto; }
+.cmd-card { display:flex; align-items:flex-start; gap:11px; padding:13px 14px; border:1px solid var(--sur); border-radius:9px; margin-bottom:7px; cursor:pointer; transition:all .13s; background:var(--bg2); }
+.cmd-card:hover { border-color:var(--blue); background:var(--sur); }
+.cmd-card.selected { border-color:var(--blue); background:var(--sur); }
+.cmd-card .cci { font-size:20px; flex-shrink:0; width:28px; text-align:center; }
+.cmd-card .cct { font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; }
+.cmd-card .ccd { font-size:12px; color:var(--sub); line-height:1.4; }
+.cmd-card .ccb { font-size:10px; font-family:monospace; background:var(--bg3); color:var(--sub); padding:1px 6px; border-radius:4px; margin-top:5px; display:inline-block; }
+
+.cmd-panel { display:flex; flex-direction:column; gap:0; overflow:hidden; background:var(--bg2); border:1px solid var(--sur); border-radius:9px; }
+.cmd-panel-hd { padding:14px 16px; border-bottom:1px solid var(--sur); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.cmd-panel-hd h3 { font-size:14px; font-weight:600; }
+.cmd-form { padding:16px; border-bottom:1px solid var(--sur); flex-shrink:0; }
+.cmd-form-note { font-size:12px; color:var(--sub); margin-bottom:12px; line-height:1.5; }
+.cmd-form-actions { display:flex; gap:9px; margin-top:13px; align-items:center; }
+.cmd-mono { font-family:monospace; font-size:12px; background:var(--bg3); color:var(--blue); padding:5px 10px; border-radius:6px; }
+
+/* Terminal */
+.terminal-wrap { flex:1; display:flex; flex-direction:column; min-height:0; }
+.terminal-hd { padding:8px 14px; border-bottom:1px solid var(--sur); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.terminal-hd .t-status { font-size:12px; color:var(--sub); display:flex; align-items:center; gap:7px; }
+.t-dot { width:8px; height:8px; border-radius:50%; background:var(--gray); }
+.t-dot.running { background:var(--green); animation:pulse 1s ease infinite; }
+.t-dot.error { background:var(--red); }
+.t-dot.done { background:var(--teal); }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+.terminal { flex:1; background:var(--bg3); padding:12px 14px; font-family:'Consolas','Courier New',monospace; font-size:12px; line-height:1.6; color:#cdd6f4; overflow-y:auto; white-space:pre-wrap; word-break:break-word; min-height:120px; }
+.terminal .t-err { color:var(--red); }
+
+/* Placeholder when no command selected */
+.cmd-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; color:var(--gray); text-align:center; gap:10px; }
+.cmd-placeholder .pi-icon { font-size:36px; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CHAT VIEW
+──────────────────────────────────────────────────────────────────────────────*/
+.chat-layout { display:flex; flex-direction:column; height:calc(100vh - 110px); }
+.chat-hist { flex:1; overflow-y:auto; padding:0 4px; display:flex; flex-direction:column; gap:14px; min-height:0; }
+.chat-bar { flex-shrink:0; padding:14px 0 0; display:flex; gap:9px; align-items:flex-end; }
+.chat-bar textarea { flex:1; background:var(--bg2); border:1px solid var(--sur2); border-radius:9px; padding:10px 12px; color:var(--text); font-size:13px; font-family:inherit; outline:none; resize:none; min-height:44px; max-height:160px; line-height:1.5; transition:border-color .12s; }
+.chat-bar textarea:focus { border-color:var(--blue); }
+.chat-bar .send-btn { padding:10px 16px; background:var(--blue); color:#1e1e2e; border:none; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; font-family:inherit; transition:all .12s; flex-shrink:0; align-self:flex-end; }
+.chat-bar .send-btn:hover { filter:brightness(1.1); }
+.chat-bar .send-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* Chat messages */
+.msg { display:flex; flex-direction:column; max-width:88%; }
+.msg.user { align-self:flex-end; align-items:flex-end; }
+.msg.assistant { align-self:flex-start; align-items:flex-start; }
+.msg-bubble { padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.6; }
+.msg.user .msg-bubble { background:var(--blue); color:#1e1e2e; border-radius:12px 12px 2px 12px; }
+.msg.assistant .msg-bubble { background:var(--bg2); border:1px solid var(--sur); border-radius:2px 12px 12px 12px; }
+.msg-meta { font-size:11px; color:var(--gray); margin-top:3px; padding:0 4px; }
+.msg-thinking { display:flex; gap:4px; padding:10px 14px; }
+.dot-pulse { width:7px; height:7px; background:var(--sub); border-radius:50%; animation:dotpulse 1.2s ease-in-out infinite; }
+.dot-pulse:nth-child(2) { animation-delay:.2s; }
+.dot-pulse:nth-child(3) { animation-delay:.4s; }
+@keyframes dotpulse { 0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)} }
+.chat-welcome { text-align:center; padding:40px 20px; color:var(--sub); }
+.chat-welcome .wicon { font-size:36px; margin-bottom:10px; }
+.chat-welcome h3 { font-size:15px; color:var(--text); margin-bottom:8px; }
+.chat-welcome p { font-size:13px; line-height:1.6; }
+.chat-suggestions { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-top:14px; }
+.chat-sug { background:var(--bg2); border:1px solid var(--sur2); border-radius:20px; padding:5px 13px; font-size:12px; color:var(--sub); cursor:pointer; transition:all .12s; }
+.chat-sug:hover { border-color:var(--blue); color:var(--blue); }
+.chat-running { color:var(--green); font-style:italic; font-size:12px; padding:4px 0; }
+
+/* ── Toast ── */
+#toast { position:fixed; bottom:20px; right:20px; background:var(--sur); color:var(--text); padding:8px 14px; border-radius:8px; font-size:13px; z-index:200; opacity:0; transform:translateY(6px); transition:all .17s; pointer-events:none; border:1px solid var(--sur2); }
+#toast.show { opacity:1; transform:translateY(0); }
+#toast.ok { border-color:var(--green); }
+#toast.err { border-color:var(--red); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--sur2); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- ─── Sidebar ─────────────────────────────────────────────────────────────── -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <h1>&#9889; Career-Ops</h1>
+    <p>AI Job Search Pipeline</p>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">Overview</div>
+    <div class="nav-item active" data-view="dashboard" onclick="nav('dashboard')">
+      <span class="ni">&#128202;</span> Dashboard
+    </div>
+    <div class="nav-sec">AI Commands</div>
+    <div class="nav-item" data-view="commands" onclick="nav('commands')">
+      <span class="ni">&#9881;</span> Run Command
+    </div>
+    <div class="nav-item" data-view="chat" onclick="nav('chat')">
+      <span class="ni">&#128172;</span> Chat
+    </div>
+    <div class="nav-sec">Pipeline</div>
+    <div class="nav-item" data-view="applications" onclick="nav('applications')">
+      <span class="ni">&#128203;</span> Applications
+    </div>
+    <div class="nav-item" data-view="pipeline" onclick="nav('pipeline')">
+      <span class="ni">&#128279;</span> Inbox
+    </div>
+    <div class="nav-item" data-view="reports" onclick="nav('reports')">
+      <span class="ni">&#128196;</span> Reports
+    </div>
+    <div class="nav-sec">Files</div>
+    <div class="nav-item" data-view="jd" onclick="nav('jd')">
+      <span class="ni">&#128206;</span> Add JD
+    </div>
+    <div class="nav-item" data-view="cv" onclick="nav('cv')">
+      <span class="ni">&#128221;</span> My CV
+    </div>
+    <div class="nav-item" data-view="profile" onclick="nav('profile')">
+      <span class="ni">&#128100;</span> Profile
+    </div>
+    <div class="nav-sec">Config</div>
+    <div class="nav-item" data-view="settings" onclick="nav('settings')">
+      <span class="ni">&#128273;</span> API Key
+    </div>
+  </nav>
+  <div class="sb-footer" id="sb-api-status">localhost:3333</div>
+</div>
+
+<!-- ─── Main ─────────────────────────────────────────────────────────────────── -->
+<main>
+  <div class="topbar">
+    <h2 id="view-title">Dashboard</h2>
+    <div id="topbar-right" style="display:flex;align-items:center;gap:8px;"></div>
+  </div>
+
+  <!-- DASHBOARD (scrollable) -->
+  <div class="content view active" id="view-dashboard">
+    <div class="stats-grid" id="stats-cards"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="section">
+        <div class="sec-hd"><h3>Status Breakdown</h3></div>
+        <div class="sec-bd"><div class="donut-wrap" id="donut-wrap"><p style="color:var(--sub)">Loading&hellip;</p></div></div>
+      </div>
+      <div class="section">
+        <div class="sec-hd"><h3>Recent Applications</h3></div>
+        <div class="sec-bd" id="recent-apps"><p style="color:var(--sub)">Loading&hellip;</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMANDS (fill height, two-panel) -->
+  <div class="content view-fill" id="view-commands" style="padding:20px;">
+    <div class="cmd-layout">
+      <!-- Left: scrollable list -->
+      <div class="cmd-list" id="cmd-list"></div>
+      <!-- Right: run panel -->
+      <div class="cmd-panel" id="cmd-panel">
+        <div class="cmd-placeholder">
+          <div class="pi-icon">&#9881;</div>
+          <p style="font-size:13px;">Select a command to run it</p>
+          <p style="font-size:12px;max-width:260px;line-height:1.6;">Commands execute directly via <strong style="color:var(--text)">Claude Code</strong> using your career-ops profile and CV as context.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT (fill height) -->
+  <div class="content view-fill" id="view-chat" style="padding:20px;">
+    <div class="chat-layout">
+      <div class="chat-hist" id="chat-hist">
+        <div class="chat-welcome">
+          <div class="wicon">&#128172;</div>
+          <h3>Chat with Claude Code</h3>
+          <p>Ask anything about your job search. Claude has full access to your CV, profile,<br>applications, and all career-ops commands.</p>
+          <div class="chat-suggestions" id="chat-sugs">
+            <div class="chat-sug" onclick="sendSuggestion('/career-ops tracker')">Show my tracker</div>
+            <div class="chat-sug" onclick="sendSuggestion('/career-ops scan')">Scan for new jobs</div>
+            <div class="chat-sug" onclick="sendSuggestion('What should I focus on in my job search this week?')">Weekly focus</div>
+            <div class="chat-sug" onclick="sendSuggestion('Review my CV and give me 3 improvements')">Review my CV</div>
+            <div class="chat-sug" onclick="sendSuggestion('/career-ops pipeline')">Process pipeline</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-bar">
+        <textarea id="chat-input" placeholder="Ask anything or type a /career-ops command&hellip;" rows="1" onkeydown="chatKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="chat-send" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATIONS (scrollable) -->
+  <div class="content view" id="view-applications">
+    <div class="fbar">
+      <input type="text" id="app-q" placeholder="Search company or role&hellip;" oninput="filterApps()">
+      <select id="app-sf" onchange="filterApps()">
+        <option value="">All statuses</option>
+        <option>Evaluated</option><option>Applied</option><option>Responded</option>
+        <option>Interview</option><option>Offer</option><option>Rejected</option>
+        <option>Discarded</option><option>SKIP</option>
+      </select>
+      <select id="app-so" onchange="filterApps()">
+        <option value="num-desc">Newest first</option>
+        <option value="num-asc">Oldest first</option>
+        <option value="score-desc">Highest score</option>
+        <option value="score-asc">Lowest score</option>
+        <option value="company">Company A-Z</option>
+      </select>
+    </div>
+    <div class="section">
+      <div class="sec-hd">
+        <h3 id="apps-count">Applications</h3>
+        <button class="btn btn-ghost btn-sm" onclick="loadApps()">&#8635; Refresh</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Date</th><th>Company</th><th>Role</th><th>Score</th><th>Status</th><th>Report</th><th>Notes</th></tr></thead>
+          <tbody id="apps-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE (scrollable) -->
+  <div class="content view" id="view-pipeline">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;">
+      <div>
+        <div class="section">
+          <div class="sec-hd">
+            <h3>Pending <span id="pend-cnt" style="color:var(--sub);font-weight:400;"></span></h3>
+            <div style="display:flex;gap:7px;">
+              <button class="btn btn-ghost btn-sm" onclick="loadPipeline()">&#8635;</button>
+              <button class="btn btn-primary btn-sm" onclick="runFromPipeline()">&#9654; Run Pipeline</button>
+            </div>
+          </div>
+          <div class="sec-bd" id="pip-pend"><p style="color:var(--sub)">Loading&hellip;</p></div>
+        </div>
+        <div class="section">
+          <div class="sec-hd"><h3>Processed <span id="proc-cnt" style="color:var(--sub);font-weight:400;"></span></h3></div>
+          <div class="sec-bd" id="pip-proc"></div>
+        </div>
+      </div>
+      <div style="position:sticky;top:0;">
+        <div class="section">
+          <div class="sec-hd"><h3>Add URL</h3></div>
+          <div class="sec-bd">
+            <div class="fg"><label>Job URL *</label><input type="url" id="nw-url" placeholder="https://&hellip;"></div>
+            <div class="fg"><label>Company</label><input type="text" id="nw-co" placeholder="Acme Corp"></div>
+            <div class="fg"><label>Job Title</label><input type="text" id="nw-title" placeholder="Data Analyst"></div>
+            <button class="btn btn-primary" style="width:100%;" onclick="addToPipeline()">+ Add to Inbox</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS (scrollable) -->
+  <div class="content view" id="view-reports">
+    <div style="display:grid;grid-template-columns:250px 1fr;gap:16px;align-items:start;">
+      <div class="section">
+        <div class="sec-hd"><h3>Reports <span id="rep-cnt" style="color:var(--sub);font-weight:400;"></span></h3></div>
+        <div class="sec-bd" style="padding:8px;"><div id="rep-list"></div></div>
+      </div>
+      <div class="section">
+        <div class="sec-hd"><h3 id="rep-title">Select a report</h3></div>
+        <div class="sec-bd"><div id="rep-body" class="mdv"><div class="empty">&#128196; Select a report</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD JD (scrollable) -->
+  <div class="content view" id="view-jd">
+    <div style="max-width:660px;">
+      <div class="section">
+        <div class="sec-hd"><h3>Upload or Paste Job Description</h3></div>
+        <div class="sec-bd">
+          <div class="dz" id="dz" onclick="document.getElementById('jd-file').click()"
+               ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+            <div style="font-size:28px;margin-bottom:7px;">&#128206;</div>
+            <p>Drop a .txt / .md file, or click to browse</p>
+            <p style="font-size:11px;margin-top:4px;">You can also paste text below</p>
+          </div>
+          <input type="file" id="jd-file" accept=".txt,.md" style="display:none;" onchange="fileSelected(event)">
+          <div style="margin:13px 0;text-align:center;font-size:12px;color:var(--gray);">&mdash; or paste below &mdash;</div>
+          <div class="fg"><label>Filename (saved to jds/)</label><input type="text" id="jd-name" value="job-description.md"></div>
+          <div class="fg"><label>Job Description</label><textarea id="jd-text" style="min-height:180px;" placeholder="Paste the full JD here&hellip;"></textarea></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="doSaveJD(null)">&#128190; Save to jds/</button>
+            <button class="btn btn-ghost" onclick="saveAndEvaluate()">&#9654; Save &amp; Evaluate</button>
+            <button class="btn btn-ghost" onclick="saveAndAddPipeline()">+ Save &amp; Add to Pipeline</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CV (scrollable) -->
+  <div class="content view" id="view-cv">
+    <div class="section">
+      <div class="sec-hd"><h3>cv.md</h3><button class="btn btn-ghost btn-sm" onclick="loadCV()">&#8635; Refresh</button></div>
+      <div class="sec-bd"><div id="cv-body" class="mdv"></div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE (scrollable) -->
+  <div class="content view" id="view-profile">
+    <div class="section">
+      <div class="sec-hd"><h3>config/profile.yml</h3><button class="btn btn-ghost btn-sm" onclick="loadProfile()">&#8635; Refresh</button></div>
+      <div class="sec-bd"><pre id="profile-body" style="background:var(--bg3);border-radius:8px;padding:14px;font-size:12px;line-height:1.8;overflow-x:auto;white-space:pre-wrap;"></pre></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS (scrollable) -->
+  <div class="content view" id="view-settings">
+    <div style="max-width:560px;">
+      <div class="section">
+        <div class="sec-hd"><h3>&#128273; Anthropic API Key</h3></div>
+        <div class="sec-bd">
+          <p style="font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:16px;">
+            All AI features (Run Command, Chat) call the Anthropic API directly using your key.
+            The key is stored in <code style="font-size:12px;background:var(--sur);padding:1px 5px;border-radius:4px;">.env</code> in the career-ops directory and never leaves your machine.
+          </p>
+          <div id="key-status-banner" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;"></div>
+          <div class="fg">
+            <label>API Key <span style="color:var(--gray);font-weight:400;">(starts with sk-ant-)</span></label>
+            <div style="display:flex;gap:8px;">
+              <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off" style="flex:1;">
+              <button class="btn btn-ghost btn-sm" id="key-toggle" onclick="toggleKeyVisibility()" style="flex-shrink:0;padding:0 12px;">Show</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;margin-top:4px;">
+            <button class="btn btn-primary" onclick="saveApiKey()">&#128190; Save Key</button>
+            <button class="btn btn-ghost" onclick="testApiKey()">&#9889; Test Connection</button>
+          </div>
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--sur);">
+            <p style="font-size:12px;color:var(--gray);line-height:1.7;">
+              Get your key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);">console.anthropic.com/settings/keys</a><br>
+              Model in use: <span id="model-in-use" style="color:var(--text);">claude-sonnet-4-6</span> &nbsp;&middot;&nbsp;
+              Change by setting <code style="font-size:11px;background:var(--sur);padding:1px 4px;border-radius:3px;">CLAUDE_MODEL</code> in .env
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<!-- ─── JavaScript ────────────────────────────────────────────────────────────── -->
+<script>
+// ─── Command definitions ─────────────────────────────────────────────────────
+var CMD_DEFS = [
+  {
+    id: 'oferta', icon: '&#128202;',
+    title: 'Evaluate Offer',
+    cmd: '/career-ops oferta',
+    desc: 'Full A-F evaluation with fit score, CV rewrite, negotiation script, and STAR stories.',
+    inputs: [
+      { id: 'url', label: 'Job URL', type: 'url', placeholder: 'https://...' },
+      { id: 'jdText', label: 'Or paste Job Description text', type: 'textarea', placeholder: 'Paste the full JD here...' }
+    ],
+    note: 'Provide a URL or paste the JD. URL takes priority if both given.'
+  },
+  {
+    id: 'pipeline', icon: '&#128279;',
+    title: 'Process Pipeline',
+    cmd: '/career-ops pipeline',
+    desc: 'Evaluates all pending URLs in your Inbox — reports, PDFs, and tracker updates.',
+    inputs: [],
+    note: 'Processes all unchecked items in data/pipeline.md.'
+  },
+  {
+    id: 'scan', icon: '&#128269;',
+    title: 'Scan Portals',
+    cmd: '/career-ops scan',
+    desc: 'Scans configured job portals for new matching offers and adds them to your inbox.',
+    inputs: [],
+    note: 'Uses portals.yml for company and keyword configuration.'
+  },
+  {
+    id: 'tracker', icon: '&#128203;',
+    title: 'Application Tracker',
+    cmd: '/career-ops tracker',
+    desc: 'Full overview of your pipeline status, pending decisions, and next actions.',
+    inputs: []
+  },
+  {
+    id: 'ofertas', icon: '&#9878;',
+    title: 'Compare Offers',
+    cmd: '/career-ops ofertas',
+    desc: 'Side-by-side ranking of multiple evaluated offers by score, fit, and priorities.',
+    inputs: [
+      { id: 'extra', label: 'Offers to compare (optional)', type: 'text', placeholder: '#1, #2, Acme Corp, Globex...' }
+    ]
+  },
+  {
+    id: 'pdf', icon: '&#128196;',
+    title: 'Generate CV / PDF',
+    cmd: '/career-ops pdf',
+    desc: 'Generates an ATS-optimized PDF CV tailored to a specific job offer.',
+    inputs: [
+      { id: 'url', label: 'Job URL (optional)', type: 'url', placeholder: 'https://...' }
+    ]
+  },
+  {
+    id: 'deep', icon: '&#127970;',
+    title: 'Deep Research',
+    cmd: '/career-ops deep',
+    desc: 'In-depth company research — funding, culture, tech stack, hiring signals, interview intel.',
+    inputs: [
+      { id: 'company', label: 'Company name or URL', type: 'text', placeholder: 'Acme Corp', required: true }
+    ]
+  },
+  {
+    id: 'contacto', icon: '&#128172;',
+    title: 'LinkedIn Outreach',
+    cmd: '/career-ops contacto',
+    desc: 'Find relevant contacts at a company and draft personalized outreach messages.',
+    inputs: [
+      { id: 'company', label: 'Company', type: 'text', placeholder: 'Acme Corp', required: true },
+      { id: 'extra', label: 'Target role (optional)', type: 'text', placeholder: 'Data Engineer' }
+    ]
+  },
+  {
+    id: 'apply', icon: '&#9989;',
+    title: 'Apply Assistant',
+    cmd: '/career-ops apply',
+    desc: 'Live application assistant — fills forms, drafts answers. Always stops before Submit.',
+    inputs: [
+      { id: 'url', label: 'Application URL', type: 'url', placeholder: 'https://...', required: true }
+    ]
+  },
+  {
+    id: 'interview-prep', icon: '&#127891;',
+    title: 'Interview Prep',
+    cmd: '/career-ops interview-prep',
+    desc: 'Likely questions, STAR stories mapped to the role, and a targeted study plan.',
+    inputs: [
+      { id: 'company', label: 'Company', type: 'text', placeholder: 'Acme Corp', required: true }
+    ]
+  },
+  {
+    id: 'training', icon: '&#128218;',
+    title: 'Evaluate Training',
+    cmd: '/career-ops training',
+    desc: 'Should you take this course or cert? Evaluated against your profile and target roles.',
+    inputs: [
+      { id: 'url', label: 'Course URL', type: 'url', placeholder: 'https://...' },
+      { id: 'jdText', label: 'Or describe the course', type: 'textarea', placeholder: 'Course title and description...' }
+    ]
+  },
+  {
+    id: 'project', icon: '&#128736;',
+    title: 'Evaluate Project Idea',
+    cmd: '/career-ops project',
+    desc: 'Does this project fill a gap in your profile? How to scope it for maximum hiring impact?',
+    inputs: [
+      { id: 'jdText', label: 'Describe the project idea', type: 'textarea', placeholder: 'I want to build...', required: true }
+    ]
+  },
+  {
+    id: 'batch', icon: '&#128260;',
+    title: 'Batch Evaluate',
+    cmd: '/career-ops batch',
+    desc: 'Evaluates many offers in parallel with multiple worker agents. Clears large backlogs fast.',
+    inputs: []
+  }
+];
+
+// ─── State ───────────────────────────────────────────────────────────────────
+var allApps = [];
+var activeJobId = null;
+var activeJobES = null;
+var chatMessages = [];
+var chatJobId = null;
+var chatES = null;
+var selectedCmd = null;
+
+// ─── Nav ─────────────────────────────────────────────────────────────────────
+var VIEW_TITLES = {
+  dashboard: 'Dashboard', commands: 'Run Command', chat: 'Chat',
+  applications: 'Applications', pipeline: 'Pipeline Inbox', reports: 'Reports',
+  jd: 'Add Job Description', cv: 'My CV', profile: 'Profile', settings: 'API Key Settings'
+};
+
+function nav(name) {
+  document.querySelectorAll('.view, .view-fill').forEach(function(v) { v.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelector('[data-view="' + name + '"]').classList.add('active');
+  document.getElementById('view-title').textContent = VIEW_TITLES[name] || name;
+  document.getElementById('topbar-right').innerHTML = '';
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'commands') renderCommands();
+  if (name === 'applications') loadApps();
+  if (name === 'pipeline') loadPipeline();
+  if (name === 'reports') loadReports();
+  if (name === 'cv') loadCV();
+  if (name === 'profile') loadProfile();
+  if (name === 'chat') focusChat();
+  if (name === 'settings') loadSettings();
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────────────────
+function loadDashboard() {
+  Promise.all([
+    fetch('/api/stats').then(function(r) { return r.json(); }),
+    fetch('/api/applications').then(function(r) { return r.json(); })
+  ]).then(function(results) {
+    var stats = results[0], apps = results[1];
+    var cards = [
+      { label:'Total',     value:stats.total,          sub:'all time',      cls:'c-blue' },
+      { label:'Evaluated', value:stats.evaluated,      sub:'pending action',cls:'c-teal' },
+      { label:'Applied',   value:stats.applied,        sub:'submitted',     cls:'c-green' },
+      { label:'Interview', value:stats.interview,      sub:'in progress',   cls:'c-yellow' },
+      { label:'Offer',     value:stats.offer,          sub:'received',      cls:'c-orange' },
+      { label:'Rejected',  value:stats.rejected,       sub:'closed',        cls:'c-red' },
+      { label:'Avg Score', value:stats.avgScore||'&mdash;', sub:'out of 5.0', cls:'c-purple' },
+      { label:'Inbox',     value:stats.pipelinePending,sub:'pending eval',  cls:'c-blue' }
+    ];
+    document.getElementById('stats-cards').innerHTML = cards.map(function(c) {
+      return '<div class="sc '+c.cls+'"><div class="lbl">'+c.label+'</div><div class="val">'+c.value+'</div><div class="sbl">'+c.sub+'</div></div>';
+    }).join('');
+    renderDonut(stats.breakdown || {});
+    var recent = apps.slice().sort(function(a,b){return b.num-a.num;}).slice(0,8);
+    document.getElementById('recent-apps').innerHTML = recent.length
+      ? recent.map(function(a) {
+          return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--sur);">'
+            +'<span style="font-size:11px;color:var(--gray);min-width:24px;">#'+a.num+'</span>'
+            +'<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.company)+'</span>'
+            +scoreBadge(a.score)+statusBadge(a.status)+'</div>';
+        }).join('')
+      : '<div class="empty">No applications yet.</div>';
+  });
+}
+
+var SC = { Evaluated:'#89b4fa',Applied:'#a6e3a1',Responded:'#94e2d5',Interview:'#f9e2af',Offer:'#fab387',Rejected:'#f38ba8',Discarded:'#6c7086',SKIP:'#cba6f7' };
+
+function renderDonut(bd) {
+  var entries = Object.entries(bd).filter(function(e){return e[1]>0;});
+  var total = entries.reduce(function(s,e){return s+e[1];},0);
+  if (!total) { document.getElementById('donut-wrap').innerHTML='<p style="color:var(--gray)">No data yet</p>'; return; }
+  var r=65, cx=75, cy=75, sw=19, circ=2*Math.PI*r, off=0;
+  var segs = entries.map(function(e) {
+    var d=e[1]/total*circ, s={label:e[0],val:e[1],d:d,off:off,col:SC[e[0]]||'#6c7086'}; off+=d; return s;
+  });
+  document.getElementById('donut-wrap').innerHTML =
+    '<svg width="150" height="150">'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--sur)" stroke-width="'+sw+'"/>'
+    +segs.map(function(s){return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+s.col+'" stroke-width="'+sw+'" stroke-dasharray="'+s.d+' '+(circ-s.d)+'" stroke-dashoffset="'+(circ/4-s.off)+'" transform="rotate(-90 '+cx+' '+cy+')"/>';}).join('')
+    +'<text x="'+cx+'" y="'+cy+'" text-anchor="middle" dy=".35em" fill="var(--text)" font-size="20" font-weight="700">'+total+'</text>'
+    +'</svg>'
+    +'<div class="legend">'+entries.map(function(e){return '<div class="li"><div class="ld" style="background:'+(SC[e[0]]||'#6c7086')+'"></div><span style="color:var(--sub)">'+e[0]+'</span><span style="color:var(--text);font-weight:600;margin-left:3px">'+e[1]+'</span></div>';}).join('')+'</div>';
+}
+
+// ─── Applications ────────────────────────────────────────────────────────────
+function loadApps() {
+  fetch('/api/applications').then(function(r){return r.json();}).then(function(apps) {
+    allApps = apps; filterApps();
+  });
+}
+function filterApps() {
+  var q=document.getElementById('app-q').value.toLowerCase();
+  var sf=document.getElementById('app-sf').value;
+  var so=document.getElementById('app-so').value;
+  var f=allApps.filter(function(a){
+    return (!q||a.company.toLowerCase().indexOf(q)>=0||a.role.toLowerCase().indexOf(q)>=0)&&(!sf||a.status===sf);
+  });
+  if (so==='num-desc') f.sort(function(a,b){return b.num-a.num;});
+  else if (so==='num-asc') f.sort(function(a,b){return a.num-b.num;});
+  else if (so==='score-desc') f.sort(function(a,b){return b.score-a.score;});
+  else if (so==='score-asc') f.sort(function(a,b){return a.score-b.score;});
+  else if (so==='company') f.sort(function(a,b){return a.company.localeCompare(b.company);});
+  document.getElementById('apps-count').textContent='Applications ('+f.length+' / '+allApps.length+')';
+  var ss=['Evaluated','Applied','Responded','Interview','Offer','Rejected','Discarded','SKIP'];
+  document.getElementById('apps-tbody').innerHTML=f.length
+    ?f.map(function(a){
+      var opts=ss.map(function(s){return '<option value="'+s+'"'+(a.status===s?' selected':'')+'>'+s+'</option>';}).join('');
+      var rep=a.reportPath?'<a href="#" class="btn btn-ghost btn-sm" onclick="viewReport(\''+esc(a.reportPath)+'\',\''+esc(a.company)+'\');return false;">View</a>':'<span style="color:var(--gray)">&#8212;</span>';
+      return '<tr><td style="color:var(--gray);font-size:12px;">#'+a.num+'</td><td style="color:var(--sub);font-size:12px;white-space:nowrap;">'+esc(a.date)+'</td><td style="font-weight:500;">'+esc(a.company)+'</td><td style="color:var(--sub);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(a.role)+'">'+esc(a.role)+'</td><td>'+scoreBadge(a.score)+'</td><td><select class="ss" data-num="'+a.num+'" onchange="updateStatus(this)">'+opts+'</select></td><td>'+rep+'</td><td style="color:var(--sub);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(a.notes)+'">'+esc(a.notes||'&#8212;')+'</td></tr>';
+    }).join('')
+    :'<tr><td colspan="8" class="empty">No results</td></tr>';
+}
+function updateStatus(sel) {
+  var num=parseInt(sel.getAttribute('data-num')), status=sel.value;
+  fetch('/api/applications/'+num+'/status',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:status})})
+    .then(function(){
+      sel.classList.add('flashed'); setTimeout(function(){sel.classList.remove('flashed');},400);
+      var app=allApps.find(function(a){return a.num===num;}); if(app) app.status=status;
+      toast('Status updated','ok');
+    });
+}
+
+// ─── Pipeline ────────────────────────────────────────────────────────────────
+function loadPipeline() {
+  fetch('/api/pipeline').then(function(r){return r.json();}).then(function(d) {
+    document.getElementById('pend-cnt').textContent='('+d.pending.length+')';
+    document.getElementById('proc-cnt').textContent='('+d.processed.length+')';
+    function renderPI(items) {
+      if (!items.length) return '<div class="empty">No items</div>';
+      return items.map(function(it){
+        return '<div class="pi"><a href="'+esc(it.url)+'" target="_blank">'+esc(it.url)+'</a>'+(it.company?'<span class="pc">'+esc(it.company)+'</span>':'')+(it.title?'<span class="pt">'+esc(it.title)+'</span>':'')+'</div>';
+      }).join('');
+    }
+    document.getElementById('pip-pend').innerHTML=renderPI(d.pending);
+    document.getElementById('pip-proc').innerHTML=renderPI(d.processed);
+  });
+}
+function addToPipeline() {
+  var url=document.getElementById('nw-url').value.trim();
+  if (!url) { toast('URL required','err'); return; }
+  fetch('/api/pipeline/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url,company:document.getElementById('nw-co').value.trim(),title:document.getElementById('nw-title').value.trim()})})
+    .then(function(){ document.getElementById('nw-url').value=''; document.getElementById('nw-co').value=''; document.getElementById('nw-title').value=''; loadPipeline(); toast('Added to inbox','ok'); });
+}
+function runFromPipeline() {
+  nav('commands');
+  setTimeout(function() { selectCmd(1); }, 100); // select pipeline cmd
+}
+
+// ─── Reports ─────────────────────────────────────────────────────────────────
+function loadReports() {
+  fetch('/api/reports').then(function(r){return r.json();}).then(function(reports) {
+    document.getElementById('rep-cnt').textContent='('+reports.length+')';
+    document.getElementById('rep-list').innerHTML=reports.length
+      ?reports.map(function(r){return '<div class="ri" onclick="viewReport(\''+esc(r.filename)+'\',\''+esc(r.slug)+'\')">'+'<span class="rn">#'+(r.num||'&#8212;')+'</span><span class="rs">'+r.slug.replace(/-/g,' ')+'</span><span class="rd">'+r.date+'</span></div>';}).join('')
+      :'<p style="color:var(--gray);font-size:12px;">No reports yet</p>';
+  });
+}
+function viewReport(filename, title) {
+  document.querySelectorAll('.ri').forEach(function(el){ el.classList.remove('selected'); });
+  var base=filename.indexOf('/')>=0?filename.split('/').pop():filename;
+  document.getElementById('rep-title').textContent=title||base;
+  document.getElementById('rep-body').innerHTML='<p style="color:var(--sub)">Loading&hellip;</p>';
+  fetch('/api/reports/'+encodeURIComponent(base)).then(function(r){return r.json();})
+    .then(function(d){ document.getElementById('rep-body').innerHTML=renderMD(d.content||'Empty'); })
+    .catch(function(){ document.getElementById('rep-body').innerHTML='<p style="color:var(--red)">Failed to load</p>'; });
+}
+
+// ─── JD ─────────────────────────────────────────────────────────────────────
+function dzOver(e) { e.preventDefault(); document.getElementById('dz').classList.add('over'); }
+function dzLeave() { document.getElementById('dz').classList.remove('over'); }
+function dzDrop(e) { e.preventDefault(); dzLeave(); if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); }
+function fileSelected(e) { if(e.target.files[0]) readFile(e.target.files[0]); }
+function readFile(f) {
+  document.getElementById('jd-name').value=f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  var reader=new FileReader(); reader.onload=function(e){ document.getElementById('jd-text').value=e.target.result; }; reader.readAsText(f);
+}
+function doSaveJD(cb) {
+  var name=document.getElementById('jd-name').value.trim()||'job-description.md';
+  var content=document.getElementById('jd-text').value.trim();
+  if (!content) { toast('Content required','err'); return; }
+  fetch('/api/jd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:name,content:content})})
+    .then(function(r){return r.json();}).then(function(d){ toast('Saved to jds/'+d.saved,'ok'); if(cb) cb(d.saved); });
+}
+function saveAndAddPipeline() {
+  doSaveJD(function(saved){ document.getElementById('nw-url').value='local:jds/'+saved; nav('pipeline'); });
+}
+function saveAndEvaluate() {
+  doSaveJD(function(saved) {
+    nav('commands');
+    setTimeout(function() {
+      selectCmd(0);
+      setTimeout(function() {
+        var urlInput = document.getElementById('cmd-input-url');
+        if (urlInput) urlInput.value = 'local:jds/'+saved;
+      }, 100);
+    }, 100);
+  });
+}
+
+// ─── CV / Profile ─────────────────────────────────────────────────────────────
+function loadCV() {
+  fetch('/api/cv').then(function(r){return r.json();}).then(function(d){ document.getElementById('cv-body').innerHTML=renderMD(d.content||'cv.md not found'); });
+}
+function loadProfile() {
+  fetch('/api/profile').then(function(r){return r.json();}).then(function(d){ document.getElementById('profile-body').textContent=d.content||'profile.yml not found'; });
+}
+
+// ─── COMMANDS — run via Claude Code ──────────────────────────────────────────
+function renderCommands() {
+  document.getElementById('cmd-list').innerHTML = CMD_DEFS.map(function(c, i) {
+    return '<div class="cmd-card" id="cc-'+i+'" onclick="selectCmd('+i+')">'
+      +'<div class="cci">'+c.icon+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div class="cct">'+c.title+'</div>'
+      +'<div class="ccd">'+c.desc+'</div>'
+      +'<div class="ccb">'+c.cmd+'</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function selectCmd(idx) {
+  selectedCmd = idx;
+  var c = CMD_DEFS[idx];
+  document.querySelectorAll('.cmd-card').forEach(function(el){ el.classList.remove('selected'); });
+  var card = document.getElementById('cc-'+idx);
+  if (card) card.classList.add('selected');
+
+  // Build form HTML
+  var formHtml = '';
+  if (c.note) formHtml += '<p class="cmd-form-note">'+esc(c.note)+'</p>';
+  c.inputs.forEach(function(inp) {
+    formHtml += '<div class="fg"><label>'+esc(inp.label)+(inp.required?' <span style="color:var(--red)">*</span>':'')+'</label>';
+    if (inp.type === 'textarea') {
+      formHtml += '<textarea id="cmd-input-'+inp.id+'" placeholder="'+esc(inp.placeholder||'')+'"></textarea>';
+    } else {
+      formHtml += '<input type="'+inp.type+'" id="cmd-input-'+inp.id+'" placeholder="'+esc(inp.placeholder||'')+'"/>';
+    }
+    formHtml += '</div>';
+  });
+
+  document.getElementById('cmd-panel').innerHTML =
+    '<div class="cmd-panel-hd"><h3>'+c.icon+' '+c.title+'</h3><span class="cmd-mono">'+c.cmd+'</span></div>'
+    +'<div class="cmd-form" id="cmd-form-area">'
+    +(formHtml || '<p style="font-size:13px;color:var(--sub);">No inputs required. Ready to run.</p>')
+    +'<div class="cmd-form-actions">'
+    +'<button class="btn btn-primary" id="run-btn" onclick="executeCmd('+idx+')">&#9654; Run Command</button>'
+    +'<button class="btn btn-danger" id="stop-btn" style="display:none;" onclick="stopCmd()">&#9632; Stop</button>'
+    +'<span id="run-status" style="font-size:12px;color:var(--sub);"></span>'
+    +'</div></div>'
+    +'<div class="terminal-wrap">'
+    +'<div class="terminal-hd"><div class="t-status"><div class="t-dot" id="t-dot"></div><span id="t-label">Ready</span></div>'
+    +'<button class="btn btn-ghost btn-sm" id="clear-btn" onclick="clearTerminal()" style="display:none;">Clear</button>'
+    +'</div>'
+    +'<div class="terminal" id="cmd-terminal">Select a command and click Run to execute it via Claude Code.\n</div>'
+    +'</div>';
+}
+
+function executeCmd(idx) {
+  var c = CMD_DEFS[idx];
+
+  // Collect inputs
+  var body = { mode: c.id };
+  c.inputs.forEach(function(inp) {
+    var el = document.getElementById('cmd-input-'+inp.id);
+    if (el && el.value.trim()) {
+      if (inp.id === 'jdText') body.jdText = el.value.trim();
+      else if (inp.id === 'url') body.url = el.value.trim();
+      else if (inp.id === 'company') body.company = el.value.trim();
+      else if (inp.id === 'extra') body.extra = el.value.trim();
+    }
+  });
+
+  // Validate required fields
+  var missing = c.inputs.filter(function(inp){ return inp.required && !body[inp.id] && !(inp.id==='jdText'&&body.jdText); });
+  if (missing.length) { toast('Please fill: '+missing.map(function(i){return i.label;}).join(', '),'err'); return; }
+
+  // Kill any existing job
+  if (activeJobId) stopCmd(true);
+
+  setTerminalState('running', 'Running...');
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('stop-btn').style.display = 'inline-flex';
+  document.getElementById('clear-btn').style.display = 'inline-flex';
+  var term = document.getElementById('cmd-terminal');
+  term.textContent = '> ' + c.cmd + '\n\n';
+
+  fetch('/api/run', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})
+    .then(function(r){ return r.json(); })
+    .then(function(d) {
+      activeJobId = d.jobId;
+      activeJobES = new EventSource('/api/stream/' + d.jobId);
+      activeJobES.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        if (data.type === 'out') { appendTerm(stripAnsi(data.text)); }
+        else if (data.type === 'err') { appendTerm(data.text, 'err'); }
+        else if (data.type === 'done') {
+          activeJobES.close(); activeJobES = null; activeJobId = null;
+          document.getElementById('run-btn').disabled = false;
+          document.getElementById('stop-btn').style.display = 'none';
+          if (data.code === 0) { setTerminalState('done', 'Completed'); toast('Done!','ok'); }
+          else { setTerminalState('error', 'Exit '+data.code); }
+        }
+      };
+      activeJobES.onerror = function() {
+        activeJobES.close(); activeJobES = null;
+        setTerminalState('error','Connection lost');
+        document.getElementById('run-btn').disabled = false;
+        document.getElementById('stop-btn').style.display = 'none';
+      };
+    })
+    .catch(function(e) { toast('Failed to start: '+e.message,'err'); document.getElementById('run-btn').disabled=false; });
+}
+
+function stopCmd(silent) {
+  if (activeJobES) { activeJobES.close(); activeJobES = null; }
+  if (activeJobId) {
+    fetch('/api/kill/'+activeJobId, {method:'POST'});
+    activeJobId = null;
+  }
+  var btn = document.getElementById('run-btn');
+  if (btn) btn.disabled = false;
+  var stopBtn = document.getElementById('stop-btn');
+  if (stopBtn) stopBtn.style.display = 'none';
+  setTerminalState('', 'Stopped');
+  if (!silent) toast('Stopped','ok');
+}
+
+function clearTerminal() {
+  var term = document.getElementById('cmd-terminal');
+  if (term) term.textContent = '';
+}
+
+function setTerminalState(state, label) {
+  var dot = document.getElementById('t-dot');
+  var lbl = document.getElementById('t-label');
+  if (!dot || !lbl) return;
+  dot.className = 't-dot' + (state ? ' '+state : '');
+  lbl.textContent = label;
+}
+
+function appendTerm(text, cls) {
+  var term = document.getElementById('cmd-terminal');
+  if (!term) return;
+  if (cls) {
+    var span = document.createElement('span');
+    span.className = 't-' + cls;
+    span.textContent = text;
+    term.appendChild(span);
+  } else {
+    term.appendChild(document.createTextNode(text));
+  }
+  term.scrollTop = term.scrollHeight;
+}
+
+function stripAnsi(s) {
+  return s.replace(/\x1B\[[\d;]*[A-Za-z]/g,'').replace(/\x1B[()][A-Z0-9]/g,'').replace(/\x1B[^[]/g,'');
+}
+
+// ─── CHAT ────────────────────────────────────────────────────────────────────
+function focusChat() {
+  setTimeout(function(){ document.getElementById('chat-input').focus(); }, 50);
+}
+
+function chatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+function sendSuggestion(text) {
+  document.getElementById('chat-input').value = text;
+  sendChat();
+}
+
+function sendChat() {
+  var input = document.getElementById('chat-input');
+  var msg = input.value.trim();
+  if (!msg || chatES) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('chat-send').disabled = true;
+
+  // Remove welcome screen on first message
+  var welcome = document.querySelector('.chat-welcome');
+  if (welcome) welcome.remove();
+
+  // Track message history for multi-turn
+  chatMessages.push({ role: 'user', content: msg });
+  addChatMsgEl('user', msg);
+
+  // Thinking indicator
+  var thinkId = 'think-' + Date.now();
+  var hist = document.getElementById('chat-hist');
+  var thinkDiv = document.createElement('div');
+  thinkDiv.id = thinkId;
+  thinkDiv.className = 'msg assistant';
+  thinkDiv.innerHTML = '<div class="msg-bubble"><div class="msg-thinking"><div class="dot-pulse"></div><div class="dot-pulse"></div><div class="dot-pulse"></div></div></div>';
+  hist.appendChild(thinkDiv);
+  hist.scrollTop = hist.scrollHeight;
+
+  fetch('/api/run', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    // Send full history so the API has multi-turn context
+    body: JSON.stringify({ messages: chatMessages.slice() })
+  }).then(function(r) {
+    if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || 'Server error'); });
+    return r.json();
+  }).then(function(d) {
+    chatJobId = d.jobId;
+
+    // Streaming bubble
+    var bubble = document.createElement('div');
+    bubble.className = 'msg assistant';
+    var inner = document.createElement('div');
+    inner.className = 'msg-bubble';
+    bubble.appendChild(inner);
+    var meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    meta.textContent = 'Claude';
+    bubble.appendChild(meta);
+
+    var think = document.getElementById(thinkId);
+    if (think) think.replaceWith(bubble);
+
+    var fullText = '';
+
+    chatES = new EventSource('/api/stream/' + d.jobId);
+    chatES.onmessage = function(e) {
+      var chunk = JSON.parse(e.data);
+      if (chunk.type === 'out') {
+        fullText += chunk.text;
+        inner.innerHTML = renderMD(fullText);
+        hist.scrollTop = hist.scrollHeight;
+      } else if (chunk.type === 'err') {
+        fullText += chunk.text;
+        inner.innerHTML = renderMD(fullText);
+        hist.scrollTop = hist.scrollHeight;
+      } else if (chunk.type === 'done') {
+        chatES.close(); chatES = null; chatJobId = null;
+        // Store assistant reply for next turn
+        if (fullText) chatMessages.push({ role: 'assistant', content: fullText });
+        document.getElementById('chat-send').disabled = false;
+        document.getElementById('chat-input').focus();
+      }
+    };
+    chatES.onerror = function() {
+      chatES.close(); chatES = null;
+      document.getElementById('chat-send').disabled = false;
+    };
+  }).catch(function(err) {
+    var think2 = document.getElementById(thinkId);
+    if (think2) think2.remove();
+    // Remove the last user message from history since it didn't send
+    chatMessages.pop();
+    document.getElementById('chat-send').disabled = false;
+    toast(err.message || 'Failed to connect', 'err');
+    // If no key, offer to go to settings
+    if (err.message && err.message.includes('API_KEY')) {
+      nav('settings');
+    }
+  });
+}
+
+function addChatMsgEl(role, text) {
+  var hist = document.getElementById('chat-hist');
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  var bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  if (role === 'user') bubble.textContent = text;
+  else bubble.innerHTML = renderMD(text);
+  div.appendChild(bubble);
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+}
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function scoreBadge(score) {
+  if (!score) return '<span class="sb sb-n">&#8212;</span>';
+  return '<span class="sb '+(score>=4?'sb-h':score>=3?'sb-m':'sb-l')+'">'+score+'</span>';
+}
+function statusBadge(status) {
+  return '<span class="badge badge-'+(status||'').replace(/\s+/g,'-')+'">'+esc(status||'&#8212;')+'</span>';
+}
+function toast(msg, type) {
+  var t=document.getElementById('toast'); t.textContent=msg; t.className='show '+(type||'');
+  clearTimeout(t._t); t._t=setTimeout(function(){ t.className=''; },2400);
+}
+
+function renderMD(md) {
+  if (!md) return '';
+  var h = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h = h.replace(/```([\s\S]*?)```/g,'<pre><code>$1</code></pre>');
+  h = h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h = h.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  h = h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h = h.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  h = h.replace(/^---+$/gm,'<hr>');
+  h = h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h = h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  h = h.replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>');
+  h = h.replace(/((?:^\|.+\|\n?)+)/gm,function(m){
+    var rows=m.trim().split('\n').filter(function(r){return !/^\|[-| ]+\|$/.test(r.trim());});
+    return '<table>'+rows.map(function(r,i){var cells=r.split('|').slice(1,-1).map(function(c){return c.trim();});var tag=i===0?'th':'td';return '<tr>'+cells.map(function(c){return '<'+tag+'>'+c+'</'+tag+'>';}).join('')+'</tr>';}).join('')+'</table>';
+  });
+  h = h.replace(/((?:^- .+\n?)+)/gm,function(m){return '<ul>'+m.replace(/^- (.+)$/gm,'<li>$1</li>')+'</ul>';});
+  h = h.replace(/((?:^\d+\. .+\n?)+)/gm,function(m){return '<ol>'+m.replace(/^\d+\. (.+)$/gm,'<li>$1</li>')+'</ol>';});
+  h = h.replace(/\n\n+/g,'</p><p>');
+  h = '<p>'+h+'</p>';
+  h = h.replace(/<p>\s*(<(?:h[1-6]|ul|ol|pre|table|blockquote|hr)[^>]*>)/g,'$1');
+  h = h.replace(/(<\/(?:h[1-6]|ul|ol|pre|table|blockquote|hr)>)\s*<\/p>/g,'$1');
+  h = h.replace(/<p><\/p>/g,'');
+  return h;
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────────
+function loadSettings() {
+  fetch('/api/settings/apikey').then(function(r) { return r.json(); }).then(function(d) {
+    var banner = document.getElementById('key-status-banner');
+    if (d.configured) {
+      banner.style.display = 'block';
+      banner.style.background = 'rgba(166,227,161,.1)';
+      banner.style.border = '1px solid rgba(166,227,161,.3)';
+      banner.style.color = 'var(--green)';
+      banner.innerHTML = '&#10003; Key configured: <code style="font-size:12px;background:rgba(166,227,161,.15);padding:1px 5px;border-radius:3px;">' + d.preview + '</code>';
+      document.getElementById('api-key-input').placeholder = d.preview;
+    } else {
+      banner.style.display = 'block';
+      banner.style.background = 'rgba(249,226,175,.08)';
+      banner.style.border = '1px solid rgba(249,226,175,.3)';
+      banner.style.color = 'var(--yellow)';
+      banner.innerHTML = '&#9888; No API key configured. Commands and Chat will not work until you save a key.';
+    }
+    updateSidebarKeyStatus(d.configured);
+  });
+}
+
+function updateSidebarKeyStatus(configured) {
+  var footer = document.getElementById('sb-api-status');
+  if (footer) {
+    footer.innerHTML = configured
+      ? '<span style="color:var(--green);">&#9679;</span> API key set &middot; localhost:3333'
+      : '<a href="#" onclick="nav(\'settings\');return false;" style="color:var(--yellow);text-decoration:none;">&#9888; Set API key</a>';
+  }
+}
+
+function saveApiKey() {
+  var key = document.getElementById('api-key-input').value.trim();
+  if (!key) { toast('Enter a key first', 'err'); return; }
+  fetch('/api/settings/apikey', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ key: key })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.error) { toast(d.error, 'err'); return; }
+    document.getElementById('api-key-input').value = '';
+    toast('API key saved!', 'ok');
+    loadSettings();
+  }).catch(function() { toast('Failed to save', 'err'); });
+}
+
+function testApiKey() {
+  var key = document.getElementById('api-key-input').value.trim() || null;
+  // Run a tiny test message
+  var body = key
+    ? JSON.stringify({ message: 'Reply with exactly: OK', _testKey: key })
+    : JSON.stringify({ message: 'Reply with exactly: OK' });
+
+  toast('Testing connection...', '');
+  fetch('/api/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: body })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { toast('Error: ' + d.error, 'err'); return; }
+      // Wait for the job to complete briefly
+      var es = new EventSource('/api/stream/' + d.jobId);
+      var got = '';
+      es.onmessage = function(e) {
+        var chunk = JSON.parse(e.data);
+        if (chunk.type === 'out') got += chunk.text;
+        if (chunk.type === 'done') {
+          es.close();
+          if (chunk.code === 0) toast('Connection OK! Model responded.', 'ok');
+          else toast('Connection failed (exit ' + chunk.code + ')', 'err');
+        }
+      };
+      es.onerror = function() { es.close(); toast('Connection error', 'err'); };
+      setTimeout(function() { es.close(); }, 30000);
+    })
+    .catch(function(e) { toast('Error: ' + e.message, 'err'); });
+}
+
+function toggleKeyVisibility() {
+  var input = document.getElementById('api-key-input');
+  var btn = document.getElementById('key-toggle');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
+  else { input.type = 'password'; btn.textContent = 'Show'; }
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+loadDashboard();
+// Check API key status for sidebar indicator
+fetch('/api/settings/apikey').then(function(r) { return r.json(); }).then(function(d) {
+  updateSidebarKeyStatus(d.configured);
+  if (!d.configured) toast('No API key set. Go to Settings to add one.', 'err');
+}).catch(function() {});
+</script>
+</body>
+</html>

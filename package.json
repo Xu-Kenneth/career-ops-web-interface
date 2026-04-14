@@ -14,7 +14,8 @@
     "update": "node update-system.mjs apply",
     "rollback": "node update-system.mjs rollback",
     "liveness": "node check-liveness.mjs",
-    "scan": "node scan.mjs"
+    "scan": "node scan.mjs",
+    "dashboard:web": "node web-dashboard.mjs"
   },
   "keywords": [
     "ai",
@@ -31,6 +32,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.87.0",
     "js-yaml": "^4.1.1",
     "playwright": "^1.58.1"
   }
