@@ -23,7 +23,12 @@ const errors = [];
 // 1. Check cv.md exists
 const cvPath = join(projectRoot, 'cv.md');
 if (!existsSync(cvPath)) {
-  errors.push('cv.md not found in project root. Create it with your CV in markdown format.');
+  errors.push(
+    'cv.md not found in project root. ' +
+    'Options: (a) run "node pdf-import.mjs <your-resume.pdf>" to import from PDF, ' +
+    '(b) paste your CV and ask Claude to create cv.md, or ' +
+    '(c) create it manually in markdown format.'
+  );
 } else {
   const cvContent = readFileSync(cvPath, 'utf-8');
   if (cvContent.trim().length < 100) {

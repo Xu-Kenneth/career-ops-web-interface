@@ -455,8 +455,21 @@ tr:hover td { background:rgba(255,255,255,.025); }
 
   <!-- CV (scrollable) -->
   <div class="content view" id="view-cv">
+    <div class="section" style="margin-bottom:16px;">
+      <div class="sec-hd"><h3>&#128196; Import Resume from PDF</h3></div>
+      <div class="sec-bd">
+        <div class="dz" id="pdf-dz" onclick="document.getElementById('pdf-file').click()"
+             ondragover="pdfDzOver(event)" ondragleave="pdfDzLeave()" ondrop="pdfDzDrop(event)">
+          <div style="font-size:28px;margin-bottom:7px;">&#128196;</div>
+          <p>Drop your resume PDF here, or click to browse</p>
+          <p style="font-size:11px;margin-top:4px;">Claude will extract the content and save it as cv.md</p>
+        </div>
+        <input type="file" id="pdf-file" accept=".pdf" style="display:none;" onchange="pdfFileSelected(event)">
+        <div id="pdf-status" style="margin-top:10px;font-size:13px;display:none;"></div>
+      </div>
+    </div>
     <div class="section">
-      <div class="sec-hd"><h3>cv.md</h3><button class="btn btn-ghost btn-sm" onclick="loadCV()">&#8635; Refresh</button></div>
+      <div class="sec-hd"><h3>cv.md</h3><div style="display:flex;gap:7px;"><button class="btn btn-ghost btn-sm" onclick="loadCV()">&#8635; Refresh</button><button class="btn btn-danger btn-sm" onclick="clearCV()">&#128465; Clear</button></div></div>
       <div class="sec-bd"><div id="cv-body" class="mdv"></div></div>
     </div>
   </div>
@@ -831,7 +844,14 @@ function saveAndEvaluate() {
 
 // ─── CV / Profile ─────────────────────────────────────────────────────────────
 function loadCV() {
-  fetch('/api/cv').then(function(r){return r.json();}).then(function(d){ document.getElementById('cv-body').innerHTML=renderMD(d.content||'cv.md not found'); });
+  fetch('/api/cv').then(function(r){return r.json();}).then(function(d){ document.getElementById('cv-body').innerHTML=renderMD(d.content||'*(cv.md is empty — import a PDF above)*'); });
+}
+function clearCV() {
+  if (!confirm('Clear cv.md? This cannot be undone.')) return;
+  fetch('/api/cv/clear', { method: 'POST' }).then(function(r){return r.json();}).then(function(d){
+    if (d.ok) { loadCV(); toast('cv.md cleared', 'ok'); }
+    else toast('Failed to clear CV', 'err');
+  });
 }
 function loadProfile() {
   fetch('/api/profile').then(function(r){return r.json();}).then(function(d){ document.getElementById('profile-body').textContent=d.content||'profile.yml not found'; });
@@ -1235,6 +1255,54 @@ function toggleKeyVisibility() {
   var btn = document.getElementById('key-toggle');
   if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
   else { input.type = 'password'; btn.textContent = 'Show'; }
+}
+
+// ─── PDF import ──────────────────────────────────────────────────────────────
+function pdfDzOver(e) { e.preventDefault(); document.getElementById('pdf-dz').classList.add('over'); }
+function pdfDzLeave() { document.getElementById('pdf-dz').classList.remove('over'); }
+function pdfDzDrop(e) {
+  e.preventDefault();
+  pdfDzLeave();
+  var file = e.dataTransfer.files[0];
+  if (file) importPdf(file);
+}
+function pdfFileSelected(e) {
+  var file = e.target.files[0];
+  if (file) importPdf(file);
+  e.target.value = '';
+}
+function importPdf(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) { toast('Please select a .pdf file', 'err'); return; }
+  var status = document.getElementById('pdf-status');
+  status.style.display = 'block';
+  status.style.color = 'var(--sub)';
+  status.innerHTML = '&#9203; Reading <strong>' + file.name + '</strong> (' + (file.size/1024).toFixed(1) + ' KB)&hellip;';
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var b64 = ev.target.result.split(',')[1];
+    status.innerHTML = '&#129302; Sending to Claude for extraction&hellip; (this takes ~10s)';
+    fetch('/api/cv/import-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdf: b64, name: file.name })
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d.ok) {
+        status.style.color = 'var(--green)';
+        status.innerHTML = '&#10003; Imported <strong>' + file.name + '</strong> &rarr; cv.md (' + d.chars + ' chars). Reloading&hellip;';
+        setTimeout(function() { loadCV(); status.style.display = 'none'; }, 1500);
+        toast('CV imported from PDF', 'ok');
+      } else {
+        status.style.color = 'var(--red)';
+        status.innerHTML = '&#10007; Error: ' + (d.error || 'unknown error');
+        toast('PDF import failed', 'err');
+      }
+    }).catch(function(err) {
+      status.style.color = 'var(--red)';
+      status.innerHTML = '&#10007; ' + err.message;
+      toast('PDF import failed', 'err');
+    });
+  };
+  reader.readAsDataURL(file);
 }
 
 // ─── Boot ────────────────────────────────────────────────────────────────────

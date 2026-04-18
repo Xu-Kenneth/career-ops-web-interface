@@ -14,6 +14,7 @@
     "update": "node update-system.mjs apply",
     "rollback": "node update-system.mjs rollback",
     "liveness": "node check-liveness.mjs",
+    "pdf-import": "node pdf-import.mjs",
     "scan": "node scan.mjs",
     "dashboard:web": "node web-dashboard.mjs"
   },
@@ -34,6 +35,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.87.0",
     "js-yaml": "^4.1.1",
+    "pdf-parse": "^2.4.5",
     "playwright": "^1.58.1"
   }
 }

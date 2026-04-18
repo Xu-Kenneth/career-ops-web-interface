@@ -326,9 +326,16 @@ function setApiKey(key) {
 // ─── HTTP helpers ─────────────────────────────────────────────────────────────
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => { try { resolve(JSON.parse(data || '{}')); } catch { resolve({}); } });
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => {
+      try {
+        const raw = Buffer.concat(chunks).toString('utf8');
+        resolve(JSON.parse(raw || '{}'));
+      } catch (e) {
+        reject(new Error('Invalid JSON body: ' + e.message));
+      }
+    });
     req.on('error', reject);
   });
 }
@@ -452,6 +459,47 @@ const server = http.createServer(async (req, res) => {
     } else if (urlPath === '/api/cv' && method === 'GET') {
       try { jsonRes(res, { content: fs.readFileSync(path.join(BASE, 'cv.md'), 'utf8') }); }
       catch { jsonRes(res, { content: '' }); }
+
+    } else if (urlPath === '/api/cv/clear' && method === 'POST') {
+      fs.writeFileSync(path.join(BASE, 'cv.md'), '', 'utf8');
+      jsonRes(res, { ok: true });
+
+    } else if (urlPath === '/api/cv/import-pdf' && method === 'POST') {
+      const body = await readBody(req);
+      if (!body.pdf) { jsonRes(res, { error: 'No PDF data provided' }, 400); return; }
+      if (!process.env.ANTHROPIC_API_KEY) {
+        jsonRes(res, { error: 'ANTHROPIC_API_KEY not configured. Go to Settings.' }, 400); return;
+      }
+      try {
+        // Step 1: extract raw text from PDF locally (no API needed)
+        const { createRequire } = await import('module');
+        const _require = createRequire(import.meta.url);
+        const { PDFParse } = _require('pdf-parse');
+        const pdfBuffer = Buffer.from(body.pdf, 'base64');
+        const parser = new PDFParse({ data: pdfBuffer });
+        const { text: rawText } = await parser.getText();
+        if (!rawText || rawText.trim().length < 50) {
+          jsonRes(res, { error: 'Could not extract text from PDF. Make sure it is not a scanned image.' }, 400);
+          return;
+        }
+
+        // Step 2: ask Claude to format the raw text as clean CV markdown
+        const { default: Anthropic } = await import('@anthropic-ai/sdk');
+        const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await client.messages.create({
+          model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
+          max_tokens: 4096,
+          messages: [{
+            role: 'user',
+            content: 'Here is the raw text extracted from a resume PDF. Convert it into clean, well-structured Markdown.\n\nRequirements:\n- Use standard CV sections as H2 headers (## Summary, ## Experience, ## Projects, ## Education, ## Skills, ## Certifications). Omit empty sections.\n- For each Experience entry: ### Company Name, then **Role Title** | Location | Date range, then bullet points (-) for achievements.\n- Preserve all metrics and achievements exactly as written — do NOT paraphrase.\n- Skills section: group by category if applicable.\n- Output ONLY the Markdown — no preamble, no explanation, no code fences.\n\nRaw text:\n\n' + rawText,
+          }],
+        });
+        const markdown = response.content[0].text;
+        fs.writeFileSync(path.join(BASE, 'cv.md'), markdown, 'utf8');
+        jsonRes(res, { ok: true, chars: markdown.length });
+      } catch (err) {
+        jsonRes(res, { error: err.message }, 500);
+      }
 
     } else if (urlPath === '/api/profile' && method === 'GET') {
       try { jsonRes(res, { content: fs.readFileSync(path.join(BASE, 'config', 'profile.yml'), 'utf8') }); }
