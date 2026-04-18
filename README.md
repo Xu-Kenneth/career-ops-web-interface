@@ -71,6 +71,8 @@ Built by someone who used it to evaluate 740+ job offers, generate 100+ tailored
 | **ATS PDF Generation** | Keyword-injected CVs with Space Grotesk + DM Sans design |
 | **Portal Scanner** | 45+ companies pre-configured (Anthropic, OpenAI, ElevenLabs, Retool, n8n...) + custom queries across Ashby, Greenhouse, Lever, Wellfound |
 | **Batch Processing** | Parallel evaluation with `claude -p` workers |
+| **Web Dashboard** | Browser UI at `localhost:3333` -- run commands, chat with Claude, manage pipeline, view reports |
+| **PDF Resume Import** | Drop your existing resume PDF into the web dashboard or run `node pdf-import.mjs <file.pdf>` -- Claude extracts and formats it as `cv.md` |
 | **Dashboard TUI** | Terminal UI to browse, filter, and sort your pipeline |
 | **Human-in-the-Loop** | AI evaluates and recommends, you decide and act. The system never submits an application -- you always have the final call |
 | **Pipeline Integrity** | Automated merge, dedup, status normalization, health checks |
@@ -90,8 +92,16 @@ npm run doctor                     # Validates all prerequisites
 cp config/profile.example.yml config/profile.yml  # Edit with your details
 cp templates/portals.example.yml portals.yml       # Customize companies
 
-# 4. Add your CV
-# Create cv.md in the project root with your CV in markdown
+# 4. Add your CV (two options)
+
+# Option A — import from an existing PDF resume:
+node pdf-import.mjs /path/to/your-resume.pdf
+
+# Option B — start the web dashboard and drag-drop your PDF:
+node web-dashboard.mjs          # opens http://localhost:3333
+# → go to My CV → drop your PDF in the upload zone
+
+# Option C — create cv.md manually in the project root
 
 # 5. Personalize with Claude
 claude   # Open Claude Code in this directory
@@ -168,6 +178,42 @@ The scanner comes with **45+ companies** ready to scan and **19 search queries**
 
 **Job boards searched:** Ashby, Greenhouse, Lever, Wellfound, Workable, RemoteFront
 
+## Web Dashboard
+
+A browser-based dashboard that connects directly to the Anthropic API -- no Claude Code CLI required.
+
+```bash
+node web-dashboard.mjs   # starts at http://localhost:3333
+```
+
+Add your API key under **Settings → API Key** (stored in `.env`, never committed).
+
+| Tab | What it does |
+|-----|-------------|
+| **Dashboard** | Stats overview, status breakdown, recent applications |
+| **Run Command** | Execute any career-ops mode (evaluate, scan, PDF, etc.) with a guided form |
+| **Chat** | Free-form chat with Claude — full access to your CV, profile, and pipeline |
+| **Applications** | Searchable/filterable table with inline status updates |
+| **Inbox** | Pending URLs to evaluate + add new ones |
+| **Reports** | Browse and read evaluation reports |
+| **My CV** | View cv.md, import from PDF (drag-and-drop), or clear |
+| **Profile** | View config/profile.yml |
+| **Settings** | Manage API key |
+
+### Importing your resume from PDF
+
+From the web dashboard — go to **My CV** and drop your PDF onto the upload zone. Claude extracts the text locally (via `pdf-parse`, no API call for extraction) then formats it into clean markdown and saves it as `cv.md`.
+
+From the CLI:
+
+```bash
+node pdf-import.mjs /path/to/resume.pdf           # saves to cv.md
+node pdf-import.mjs /path/to/resume.pdf --dry-run # preview only
+node pdf-import.mjs /path/to/resume.pdf --output cv-backup.md
+```
+
+> **Note:** PDF import works on text-based PDFs. Scanned image PDFs (no selectable text) are not supported.
+
 ## Dashboard TUI
 
 The built-in terminal dashboard lets you browse your pipeline visually:
@@ -185,8 +231,12 @@ Features: 6 filter tabs, 4 sort modes, grouped/flat view, lazy-loaded previews, 
 ```
 career-ops/
 ├── CLAUDE.md                    # Agent instructions
-├── cv.md                        # Your CV (create this)
+├── cv.md                        # Your CV (create this or import from PDF)
 ├── article-digest.md            # Your proof points (optional)
+├── web-dashboard.mjs            # Browser dashboard (localhost:3333)
+├── pdf-import.mjs               # CLI: import PDF resume → cv.md
+├── generate-pdf.mjs             # CLI: HTML → PDF via Playwright
+├── scan.mjs                     # CLI: zero-token portal scanner
 ├── config/
 │   └── profile.example.yml      # Template for your profile
 ├── modes/                       # 14 skill modes
@@ -221,9 +271,11 @@ career-ops/
 ![Bubble Tea](https://img.shields.io/badge/Bubble_Tea-FF75B5?style=flat&logo=go&logoColor=white)
 
 - **Agent**: Claude Code with custom skills and modes
-- **PDF**: Playwright/Puppeteer + HTML template
-- **Scanner**: Playwright + Greenhouse API + WebSearch
-- **Dashboard**: Go + Bubble Tea + Lipgloss (Catppuccin Mocha theme)
+- **PDF generation**: Playwright + HTML template (ATS-normalized)
+- **PDF import**: pdf-parse (local text extraction) + Claude (markdown formatting)
+- **Scanner**: Direct Greenhouse / Ashby / Lever APIs — zero LLM tokens
+- **Web dashboard**: Node.js HTTP + Anthropic SDK streaming (`web-dashboard.mjs`)
+- **Terminal dashboard**: Go + Bubble Tea + Lipgloss (Catppuccin Mocha theme)
 - **Data**: Markdown tables + YAML config + TSV batch files
 
 ## Also Open Source
