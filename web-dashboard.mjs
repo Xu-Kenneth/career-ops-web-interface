@@ -190,6 +190,43 @@ async function runJob(body) {
   return id;
 }
 
+// ─── Scan runner (spawns scan.mjs, streams output via SSE) ───────────────────
+function runScanJob(args) {
+  const id = crypto.randomBytes(6).toString('hex');
+  const job = { id, chunks: [], done: false, error: null, clients: [], abortController: new AbortController() };
+  jobs.set(id, job);
+
+  function broadcast(chunk) {
+    job.chunks.push(chunk);
+    const line = 'data: ' + JSON.stringify(chunk) + '\n\n';
+    job.clients.forEach(c => { try { c.write(line); } catch {} });
+  }
+
+  (async () => {
+    try {
+      const child = spawn('node', [path.join(BASE, 'scan.mjs'), ...args], {
+        cwd: BASE, stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      job.abortController.signal.addEventListener('abort', () => child.kill());
+      child.stdout.on('data', d => broadcast({ type: 'out', text: d.toString() }));
+      child.stderr.on('data', d => broadcast({ type: 'err', text: d.toString() }));
+      await new Promise((resolve, reject) => {
+        child.on('close', code => { job.done = true; broadcast({ type: 'done', code: code || 0 }); resolve(); });
+        child.on('error', reject);
+      });
+    } catch (err) {
+      job.done = true;
+      broadcast({ type: 'err', text: '\n[Error] ' + err.message + '\n' });
+      broadcast({ type: 'done', code: 1 });
+    }
+    job.clients.forEach(c => { try { c.end(); } catch {} });
+    job.clients = [];
+    setTimeout(() => jobs.delete(id), 10 * 60 * 1000);
+  })();
+
+  return id;
+}
+
 // ─── Data helpers ─────────────────────────────────────────────────────────────
 function parseApplications() {
   try {
@@ -359,6 +396,14 @@ const server = http.createServer(async (req, res) => {
     // ── Run a career-ops command via Anthropic API ──
     if (urlPath === '/api/run' && method === 'POST') {
       const body = await readBody(req);
+
+      // Scan runs node scan.mjs directly — no Claude API needed
+      if (body.mode === 'scan') {
+        const extraArgs = body.company ? ['--company', body.company] : [];
+        const jobId = runScanJob(extraArgs);
+        jsonRes(res, { jobId });
+        return;
+      }
 
       if (!process.env.ANTHROPIC_API_KEY) {
         jsonRes(res, { error: 'ANTHROPIC_API_KEY not configured. Go to Settings to add your key.' }, 400);
